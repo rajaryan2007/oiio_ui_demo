@@ -1,0 +1,3 @@
+/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir
+/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/edit_cache.dir
+/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/rebuild_cache.dir

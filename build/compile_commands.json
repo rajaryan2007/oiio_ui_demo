@@ -1,0 +1,50 @@
+[
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/src/main.cpp.o -c /home/misa/coderepo/oiio_ui_demo/src/main.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/src/main.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_draw.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_draw.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_draw.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_draw.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_widgets.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_widgets.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_widgets.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_widgets.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_tables.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_tables.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/imgui_tables.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/imgui_tables.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/backends/imgui_impl_sdl3.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends/imgui_impl_sdl3.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends/imgui_impl_sdl3.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/backends/imgui_impl_sdl3.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/c++ -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -std=gnu++20 -o CMakeFiles/oiio_ui_demo.dir/vendor/imgui/backends/imgui_impl_opengl3.cpp.o -c /home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends/imgui_impl_opengl3.cpp",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends/imgui_impl_opengl3.cpp",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/imgui/backends/imgui_impl_opengl3.cpp.o"
+},
+{
+  "directory": "/home/misa/coderepo/oiio_ui_demo/build",
+  "command": "/usr/bin/cc -DFMT_HEADER_ONLY=1 -I/home/misa/coderepo/oiio_ui_demo/src -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui -I/home/misa/coderepo/oiio_ui_demo/vendor/imgui/backends -I/home/misa/coderepo/oiio_ui_demo/vendor/glad/include -o CMakeFiles/oiio_ui_demo.dir/vendor/glad/src/glad.c.o -c /home/misa/coderepo/oiio_ui_demo/vendor/glad/src/glad.c",
+  "file": "/home/misa/coderepo/oiio_ui_demo/vendor/glad/src/glad.c",
+  "output": "/home/misa/coderepo/oiio_ui_demo/build/CMakeFiles/oiio_ui_demo.dir/vendor/glad/src/glad.c.o"
+}
+]

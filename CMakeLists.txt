@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.6)
 project(oiio_ui_demo)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -36,7 +36,7 @@ target_include_directories(oiio_ui_demo PRIVATE
     ${OPENIMAGEIO_INCLUDE_DIRS}
 )
 
-target_link_libraries(imiv_demo PRIVATE
+target_link_libraries(oiio_ui_demo PRIVATE
     SDL3::SDL3
     OpenImageIO::OpenImageIO
     OpenGL::GL
