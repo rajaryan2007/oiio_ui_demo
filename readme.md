@@ -6,9 +6,9 @@ A high-performance, cross-platform interactive image viewer prototype implementi
 
 ## Demo
 
-<video src="assets/untitled.mp4" controls="controls" style="max-width: 100%;">
-  Your browser does not support the video tag.
-</video>
+<video src="assets/untitled.mp4" controls width="100%"></video>
+
+*(If the video doesn't play inline, you can [view it here](assets/untitled.mp4))*
 
 ## Architectural Thesis
 
