@@ -2,3 +2,7 @@
 build/dist/
 dist
 .cache
+build/
+assets/demo.gif
+assets/demo.png
+*.mp4

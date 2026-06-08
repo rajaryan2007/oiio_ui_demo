@@ -6,14 +6,13 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_sdl3.h"
-#include <OpenImageIO/imagebuf.h>
-#include <OpenImageIO/imagebufalgo.h>
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
+
+#include "Viewer.h"
 
 std::string OpenFileDialog() {
 #if defined(_WIN32)
@@ -71,51 +70,131 @@ std::string OpenFileDialog() {
   return "";
 }
 
-bool CreateTextureFromImageBuf(OIIO::ImageBuf &img_buf, GLuint *out_texture) {
-  if (!img_buf.initialized())
-    return false;
-
-  OIIO::ImageSpec spec = img_buf.spec();
-  int width = spec.width;
-  int height = spec.height;
-  int channels = spec.nchannels;
-
-  std::vector<unsigned char> pixels(width * height * channels);
-
-  if (!img_buf.get_pixels(img_buf.roi(), OIIO::TypeDesc::UINT8,
-                          pixels.data())) {
-    std::cerr << "Failed to extract pixels from OpenImageIO buffer.\n";
-    return false;
+std::string SaveFileDialog() {
+#if defined(_WIN32)
+  char buffer[1024] = {0};
+  FILE *f = popen(
+      "powershell -Command \"Add-Type -AssemblyName System.Windows.Forms; $f = "
+      "New-Object System.Windows.Forms.SaveFileDialog; $f.Filter = 'Images "
+      "(*.png;*.jpg;*.exr;*.hdr)|*.png;*.jpg;*.jpeg;*.exr;*.hdr'; "
+      "if($f.ShowDialog() -eq 'OK') { $f.FileName }\"",
+      "r");
+  if (f) {
+    if (fgets(buffer, sizeof(buffer), f) != nullptr) {
+      std::string path = buffer;
+      if (!path.empty() && path.back() == '\n') path.pop_back();
+      if (!path.empty() && path.back() == '\r') path.pop_back();
+      pclose(f);
+      return path;
+    }
+    pclose(f);
   }
-
-  GLenum gl_format = GL_RGBA;
-  if (channels == 1)
-    gl_format = GL_RED;
-  else if (channels == 2)
-    gl_format = GL_RG;
-  else if (channels == 3)
-    gl_format = GL_RGB;
-  else if (channels == 4)
-    gl_format = GL_RGBA;
-
-  GLuint texture_id;
-  glGenTextures(1, &texture_id);
-  glBindTexture(GL_TEXTURE_2D, texture_id);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-  glTexImage2D(GL_TEXTURE_2D, 0, gl_format, width, height, 0, gl_format,
-               GL_UNSIGNED_BYTE, pixels.data());
-
-  *out_texture = texture_id;
-  return true;
+#elif defined(__linux__)
+  char buffer[1024] = {0};
+  FILE *f = popen("zenity --file-selection --save --title='Save Image Asset' "
+                  "--file-filter='Images | *.png *.jpg *.jpeg *.exr *.hdr "
+                  "*.tga' 2>/dev/null",
+                  "r");
+  if (f) {
+    if (fgets(buffer, sizeof(buffer), f) != nullptr) {
+      std::string path = buffer;
+      if (!path.empty() && path.back() == '\n') path.pop_back();
+      pclose(f);
+      return path;
+    }
+    pclose(f);
+  }
+#elif defined(__APPLE__)
+  char buffer[1024] = {0};
+  FILE *f = popen("osascript -e 'POSIX path of (choose file name with prompt \"Save Image Asset\")'",
+                  "r");
+  if (f) {
+    if (fgets(buffer, sizeof(buffer), f) != nullptr) {
+      std::string path = buffer;
+      if (!path.empty() && path.back() == '\n') path.pop_back();
+      pclose(f);
+      return path;
+    }
+    pclose(f);
+  }
+#endif
+  return "";
 }
+
+void ApplyFlatDarkTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+    style.TabRounding = 0.0f;
+    
+    style.WindowBorderSize = 1.0f;
+    style.FrameBorderSize = 1.0f;
+    style.PopupBorderSize = 1.0f;
+
+    style.FramePadding = ImVec2(10.0f, 6.0f);
+    style.ItemSpacing = ImVec2(10.0f, 10.0f);
+    style.GrabMinSize = 12.0f;
+
+    ImVec4* colors = style.Colors;
+    colors[ImGuiCol_Text]                   = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_TextDisabled]           = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    colors[ImGuiCol_WindowBg]               = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_ChildBg]                = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_PopupBg]                = ImVec4(0.12f, 0.12f, 0.12f, 0.94f);
+    colors[ImGuiCol_Border]                 = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_FrameBg]                = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]          = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_TitleBg]                = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
+    colors[ImGuiCol_TitleBgActive]          = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
+    colors[ImGuiCol_MenuBarBg]              = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
+    colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+    colors[ImGuiCol_CheckMark]              = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+    colors[ImGuiCol_SliderGrab]             = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+    colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    colors[ImGuiCol_Button]                 = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]          = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+    colors[ImGuiCol_ButtonActive]           = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+    colors[ImGuiCol_Header]                 = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_HeaderHovered]          = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_HeaderActive]           = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_Separator]              = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_SeparatorHovered]       = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_SeparatorActive]        = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    colors[ImGuiCol_Tab]                    = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_TabHovered]             = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TabActive]              = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]           = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive]     = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_PlotLines]              = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+    colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogram]          = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+    colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+    colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TableBorderLight]       = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.05f, 0.05f, 0.05f, 0.50f);
+    colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
+    colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    colors[ImGuiCol_NavHighlight]           = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
+    colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.05f, 0.05f, 0.05f, 0.70f);
+}
+
 
 int main(int argc, char *argv[]) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -162,23 +241,15 @@ int main(int argc, char *argv[]) {
   (void)io;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+  ApplyFlatDarkTheme();
+
   ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init("#version 410 core");
 
-  std::string current_file_path = "";
-  std::unique_ptr<OIIO::ImageBuf> image_buffer = nullptr;
-  bool file_loaded = false;
-
-  OIIO::ImageBuf processed_buffer;
-  float exposure_multiplier = 1.0f;
-  float previous_exposure = 1.0f;
-
-  GLuint gl_image_texture = 0;
-  bool texture_ready = false;
+  Viewer viewer;
 
   bool running = true;
-  ImVec4 clear_color = ImVec4(0.15f, 0.16f, 0.21f, 1.00f);
-  bool fit_to_screen = true;
+  ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
 
   while (running) {
     SDL_Event event;
@@ -207,32 +278,22 @@ int main(int argc, char *argv[]) {
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                      ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Text("Core Application Metrics:");
     ImGui::Text("Application Framerate: %.1f FPS", io.Framerate);
     ImGui::Separator();
 
-    ImGui::Text("Asset Controls:");
     if (ImGui::Button("Open Image...", ImVec2(-1, 30))) {
       std::string chosen_path = OpenFileDialog();
       if (!chosen_path.empty()) {
-        if (gl_image_texture != 0) {
-          glDeleteTextures(1, &gl_image_texture);
-          gl_image_texture = 0;
-          texture_ready = false;
-        }
+          viewer.LoadFile(chosen_path);
+      }
+    }
 
-        current_file_path = chosen_path;
-        image_buffer = std::make_unique<OIIO::ImageBuf>(current_file_path);
-        file_loaded = image_buffer->read();
-
-        if (file_loaded) {
-          exposure_multiplier = 1.0f;
-          previous_exposure = 1.0f;
-          processed_buffer.clear();
-          processed_buffer.copy(*image_buffer);
-
-          texture_ready =
-              CreateTextureFromImageBuf(processed_buffer, &gl_image_texture);
+    if (viewer.IsLoaded()) {
+      ImGui::Dummy(ImVec2(0.0f, 4.0f));
+      if (ImGui::Button("Save Image...", ImVec2(-1, 30))) {
+        std::string save_path = SaveFileDialog();
+        if (!save_path.empty()) {
+            viewer.SaveFile(save_path);
         }
       }
     }
@@ -240,110 +301,29 @@ int main(int argc, char *argv[]) {
     ImGui::Dummy(ImVec2(0.0f, 4.0f));
     bool is_fullscreen =
         (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) != 0;
-    if (ImGui::Button(is_fullscreen ? "Exit App Fullscreen"
-                                    : "App Fullscreen Mode",
+    if (ImGui::Button(is_fullscreen ? "Exit Fullscreen"
+                                    : "Fullscreen Mode",
                       ImVec2(-1, 30))) {
       SDL_SetWindowFullscreen(window, !is_fullscreen);
     }
-
+    
     ImGui::Separator();
+    ImGui::Dummy(ImVec2(0.0f, 4.0f));
+    
+    // Draw the viewer controls in the side panel
+    viewer.DrawControls();
 
-    if (file_loaded) {
-      ImGui::Text("Active File: %s", std::string(image_buffer->name()).c_str());
-      ImGui::Text("Format: %s", image_buffer->spec().format.c_str());
-      ImGui::Text("Resolution: %dx%d", image_buffer->spec().width,
-                  image_buffer->spec().height);
-    } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                         "Status: Waiting for image...");
-    }
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(sidebar_width, 0));
     ImGui::SetNextWindowSize(ImVec2(display_w - sidebar_width, display_h));
+    // Remove scrollbars from the main viewport, as the viewer handles its own pan/zoom
     ImGui::Begin("Image Viewport", nullptr,
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                     ImGuiWindowFlags_NoCollapse |
-                     ImGuiWindowFlags_HorizontalScrollbar);
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
 
-    if (texture_ready && gl_image_texture != 0 && file_loaded) {
-      ImTextureID tex_id = (ImTextureID)(intptr_t)gl_image_texture;
-      float img_w = (float)image_buffer->spec().width;
-      float img_h = (float)image_buffer->spec().height;
+    viewer.DrawImage(ImVec2(display_w - sidebar_width, display_h));
 
-      ImGui::Dummy(ImVec2(0.0f, 2.0f));
-      ImGui::Checkbox("Fit Image to Window", &fit_to_screen);
-      ImGui::SameLine();
-      ImGui::Text(" | Native Resolution: %.0fx%.0f", img_w, img_h);
-
-      ImGui::SetNextItemWidth(200.0f);
-      if (ImGui::SliderFloat("Exposure Multiplier", &exposure_multiplier, 0.0f,
-                             4.0f, "%.2f")) {
-        if (exposure_multiplier != previous_exposure) {
-          OIIO::ImageBufAlgo::mul(processed_buffer, *image_buffer,
-                                  exposure_multiplier);
-
-          OIIO::ImageSpec spec = processed_buffer.spec();
-          std::vector<unsigned char> update_pixels(spec.width * spec.height *
-                                                   spec.nchannels);
-          processed_buffer.get_pixels(processed_buffer.roi(),
-                                      OIIO::TypeDesc::UINT8,
-                                      update_pixels.data());
-
-          GLenum gl_fmt = GL_RGBA;
-          if (spec.nchannels == 1)
-            gl_fmt = GL_RED;
-          else if (spec.nchannels == 2)
-            gl_fmt = GL_RG;
-          else if (spec.nchannels == 3)
-            gl_fmt = GL_RGB;
-          else if (spec.nchannels == 4)
-            gl_fmt = GL_RGBA;
-
-          glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-          glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-          glBindTexture(GL_TEXTURE_2D, gl_image_texture);
-          glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, spec.width, spec.height,
-                          gl_fmt, GL_UNSIGNED_BYTE, update_pixels.data());
-
-          previous_exposure = exposure_multiplier;
-        }
-      }
-
-      ImGui::Separator();
-      ImGui::Dummy(ImVec2(0.0f, 4.0f));
-
-      float render_w = img_w;
-      float render_h = img_h;
-
-      if (fit_to_screen) {
-        ImVec2 avail_size = ImGui::GetContentRegionAvail();
-
-        if (avail_size.x > 0 && avail_size.y > 0) {
-          float image_aspect = img_w / img_h;
-          float avail_aspect = avail_size.x / avail_size.y;
-
-          if (image_aspect > avail_aspect) {
-            render_w = avail_size.x;
-            render_h = avail_size.x / image_aspect;
-          } else {
-            render_h = avail_size.y;
-            render_w = avail_size.y * image_aspect;
-          }
-
-          float cursor_x =
-              ImGui::GetCursorPosX() + (avail_size.x - render_w) * 0.5f;
-          float cursor_y =
-              ImGui::GetCursorPosY() + (avail_size.y - render_h) * 0.5f;
-          ImGui::SetCursorPos(ImVec2(cursor_x, cursor_y));
-        }
-      }
-
-      ImGui::Image(tex_id, ImVec2(render_w, render_h));
-    } else {
-      ImGui::Text("No active hardware texture bound.");
-    }
     ImGui::End();
 
     ImGui::Render();
@@ -354,10 +334,6 @@ int main(int argc, char *argv[]) {
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
-  }
-
-  if (gl_image_texture != 0) {
-    glDeleteTextures(1, &gl_image_texture);
   }
 
   ImGui_ImplOpenGL3_Shutdown();

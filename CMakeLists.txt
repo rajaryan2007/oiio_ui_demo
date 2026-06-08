@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(SDL3 REQUIRED)
 find_package(OpenImageIO REQUIRED)
+find_package(OpenColorIO REQUIRED)
 find_package(OpenGL REQUIRED)
 
 set(VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
@@ -24,6 +25,8 @@ set(IMGUI_SOURCES
 
 add_executable(oiio_ui_demo
     src/main.cpp
+    src/Viewer.cpp
+    src/OcioHelper.cpp
     ${IMGUI_SOURCES}
     ${GLAD_DIR}/src/glad.c
 )
@@ -39,6 +42,7 @@ target_include_directories(oiio_ui_demo PRIVATE
 target_link_libraries(oiio_ui_demo PRIVATE
     SDL3::SDL3
     OpenImageIO::OpenImageIO
+    OpenColorIO::OpenColorIO
     OpenGL::GL
     ${CMAKE_DL_LIBS}
 )
