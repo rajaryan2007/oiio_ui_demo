@@ -15,7 +15,9 @@ The goal of this project is to decouple the core viewing and image processing lo
 
 ## Screenshots
 
-*(Screenshots and GIFs go here)*
+![Demo Screenshot](assets/demo.png)
+
+![Demo Animation](assets/demo.gif)
 
 ## Dependencies
 
