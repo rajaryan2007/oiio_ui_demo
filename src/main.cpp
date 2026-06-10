@@ -5,9 +5,9 @@
 
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl3.h"
-#include <SDL3/SDL.h>
+#include "imgui_impl_glfw.h"
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -196,39 +196,30 @@ void ApplyFlatDarkTheme() {
 }
 
 
+static void glfw_error_callback(int error, const char* description) {
+    std::cerr << "GLFW Error " << error << ": " << description << "\n";
+}
+
 int main(int argc, char *argv[]) {
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
-    std::cerr << "Failed to initialize SDL: " << SDL_GetError() << "\n";
+  glfwSetErrorCallback(glfw_error_callback);
+  if (!glfwInit())
     return -1;
-  }
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
-                      SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if __APPLE__
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
-  SDL_Window *window =
-      SDL_CreateWindow("OIIO ImGui Runtime Shell", 1280, 720,
-                       SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  GLFWwindow* window = glfwCreateWindow(1280, 720, "OIIO ImGui Runtime Shell", nullptr, nullptr);
   if (!window) {
-    std::cerr << "Window creation failed: " << SDL_GetError() << "\n";
-    SDL_Quit();
+    glfwTerminate();
     return -1;
   }
 
-  SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-  if (!gl_context) {
-    std::cerr << "OpenGL Context creation failed: " << SDL_GetError() << "\n";
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    return -1;
-  }
-
-  SDL_GL_MakeCurrent(window, gl_context);
-  SDL_GL_SetSwapInterval(1);
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
   if (!gladLoadGL()) {
     std::cerr << "Failed to initialize Glad loader!\n";
@@ -243,7 +234,7 @@ int main(int argc, char *argv[]) {
 
   ApplyFlatDarkTheme();
 
-  ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 410 core");
 
   Viewer viewer;
@@ -251,21 +242,11 @@ int main(int argc, char *argv[]) {
   bool running = true;
   ImVec4 clear_color = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
 
-  while (running) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL3_ProcessEvent(&event);
-      if (event.type == SDL_EVENT_QUIT) {
-        running = false;
-      }
-      if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED &&
-          event.window.windowID == SDL_GetWindowID(window)) {
-        running = false;
-      }
-    }
+  while (!glfwWindowShouldClose(window) && running) {
+    glfwPollEvents();
 
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     float sidebar_width = 340.0f;
@@ -299,12 +280,15 @@ int main(int argc, char *argv[]) {
     }
 
     ImGui::Dummy(ImVec2(0.0f, 4.0f));
-    bool is_fullscreen =
-        (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) != 0;
-    if (ImGui::Button(is_fullscreen ? "Exit Fullscreen"
-                                    : "Fullscreen Mode",
-                      ImVec2(-1, 30))) {
-      SDL_SetWindowFullscreen(window, !is_fullscreen);
+    bool is_fullscreen = glfwGetWindowMonitor(window) != nullptr;
+    if (ImGui::Button(is_fullscreen ? "Exit Fullscreen" : "Fullscreen Mode", ImVec2(-1, 30))) {
+        if (is_fullscreen) {
+            glfwSetWindowMonitor(window, nullptr, 100, 100, 1280, 720, GLFW_DONT_CARE);
+        } else {
+            GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        }
     }
     
     ImGui::Separator();
@@ -333,16 +317,15 @@ int main(int argc, char *argv[]) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+    glfwSwapBuffers(window);
   }
 
   ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-  SDL_GL_DestroyContext(gl_context);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+  glfwDestroyWindow(window);
+  glfwTerminate();
 
   return 0;
 }

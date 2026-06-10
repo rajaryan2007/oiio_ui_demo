@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(SDL3 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLFW REQUIRED glfw3)
 find_package(OpenImageIO REQUIRED)
 find_package(OpenColorIO REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -19,7 +20,7 @@ set(IMGUI_SOURCES
   ${IMGUI_DIR}/imgui_draw.cpp
   ${IMGUI_DIR}/imgui_widgets.cpp
   ${IMGUI_DIR}/imgui_tables.cpp
-  ${IMGUI_DIR}/backends/imgui_impl_sdl3.cpp
+  ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
   ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
 
@@ -37,10 +38,11 @@ target_include_directories(oiio_ui_demo PRIVATE
     ${IMGUI_DIR}/backends
     ${GLAD_DIR}/include
     ${OPENIMAGEIO_INCLUDE_DIRS}
+    ${GLFW_INCLUDE_DIRS}
 )
 
 target_link_libraries(oiio_ui_demo PRIVATE
-    SDL3::SDL3
+    ${GLFW_LIBRARIES}
     OpenImageIO::OpenImageIO
     OpenColorIO::OpenColorIO
     OpenGL::GL
