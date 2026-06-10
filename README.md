@@ -23,7 +23,7 @@ The goal of this project is to decouple the core viewing and image processing lo
 
 * **OpenImageIO (OIIO)** (System installed)
 * **OpenColorIO (OCIO)** (System installed)
-* **SDL3** (System installed, handles Window/Context creation and input events)
+* **GLFW** (System installed, handles Window/Context creation and input events)
 * **Dear ImGui** (Vendored)
 * **GLAD** (Vendored, OpenGL 4.1 Core Profile)
 * **NativeFileDialog-Extended (NFD)** (Linked via CMake for native open/save dialogs)
